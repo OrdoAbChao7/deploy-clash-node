@@ -1,0 +1,7 @@
+# Never publish generated credentials or subscriptions.
+access.txt
+profile.yaml
+config.json
+*.key
+*.pem
+*.log
