@@ -5,3 +5,7 @@ config.json
 *.key
 *.pem
 *.log
+
+# expiring-subscription: 运行产物可能含订阅链接与凭据，禁止入库
+expiring-subscription/issue-*.log
+expiring-subscription/.issue-server

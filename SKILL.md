@@ -1,32 +1,49 @@
 ---
 name: deploy-clash-node
-description: Use when a user asks to deploy a self-hosted Clash or Mihomo-compatible proxy node on a server, import existing routing rules, or publish that node as a remote subscription.
+description: Audit, deploy, maintain, and troubleshoot VPS proxy infrastructure for Clash/Mihomo; publish HTTPS subscriptions, migrate profiles, optimize Script.js routing and DNS, benchmark protocols, and perform verified rollbacks.
+metadata:
+  version: "2.0.0"
 ---
 
-# Deploy a Clash-compatible node
+# VPS 多协议代理工程
 
-Complete the requested deployment and return an importable profile or subscription URL. Treat server credentials, node keys, and subscription URLs as secrets. Never put them in repositories, command-line arguments, process logs, or reusable skill files.
+明确模式：只读审计、部署/升级、订阅迁移、分流优化、测试或故障回滚。沿用实际客户端、现有服务及已授予的权限；不为统一而迁移可用核心，不默认部署所有协议。以项目事实和实测为准，不把历史成绩或版本当成通用推荐。
 
-## Scope and preparation
+## 执行阶段
 
-Confirm the requested outcome from context: a node, a local Clash profile, existing routing rules, and/or a remote subscription. Do not expose extra ports or publish a subscription unless the user requested that outcome. Before changing the host, check OS, architecture, active listeners, firewall, existing proxy services, and any project deployment instructions. Preserve existing services and configurations. Verify current installation and protocol details against upstream Xray and Mihomo documentation because these can change.
+| 阶段 | 产出与放行条件 | 默认权限 |
+|---|---|---|
+| Phase 0 取证 | OS/资源/网络、SSH、核心版本与有效配置、监听、防火墙、Nginx/TLS/Certbot、日志、备份摘要；未知项标 unknown | 只读自动 |
+| Phase 1 调研 | 官方仓库 Release、提交、Issue、安全公告、License、摘要与客户端兼容证据 | 自动 |
+| Phase 2 设计 | 根据 TCP/UDP、资源、性能与故障域选协议/核心 | 自动 |
+| Phase 3 计划 | 配置 diff、变更清单、备份与恢复步骤、停止条件、流量预算 | 自动 |
+| Phase 4 部署 | 逐项实施，每项校验与健康检查后再继续 | 必须获覆盖具体变更的批准 |
+| Phase 5 客户端 | 订阅/生产脚本候选、隔离验证后应用并核对运行状态 | 必须获覆盖具体变更的批准 |
+| Phase 6 测试 | 分协议样本/中位数/失败率/资源/故障切换 | 按预算执行 |
+| Phase 7 收尾 | 脱敏、临时进程/端口/凭据清理；保留回滚点 | 低风险自动，高风险需批准 |
+| Phase 8 交付 | 已做/未做/限制、版本、证据、维护和回滚路径 | 自动 |
 
-Use an interactive secret prompt or another protected channel for SSH credentials. Check the host key against a known fingerprint when one is available; otherwise record the first observed fingerprint and detect changes on later connections. Avoid temporary scripts that contain passwords or server private keys; remove task-specific temporary files after use.
+只读请求在 Phase 0 与必要的 Phase 1 后交付，不安装、续期、重启或修改系统。已有批准不重复询问；新范围先给可审查计划。安全异常停止受影响操作并报告，不连续尝试高风险绕行。SSH 指纹变化必须独立带外核验，禁止关闭 StrictHostKeyChecking。凭据仅通过受保护文件/输入传递，不进入 argv、日志、普通报告、版本库或 Skill。
 
-## Node
+## 按任务读取
 
-For a clean Ubuntu 24.04 x86_64 server, inspect and use [scripts/deploy.sh](scripts/deploy.sh) when the user wants the default VLESS Reality node plus HTTPS subscription. The script stops on occupied ports or existing deployment files. For an existing server or another desired protocol, deploy manually after inspecting its current state.
+- 官方项目选型与多协议架构：[protocol-selection.md](references/protocol-selection.md)。保留 VLESS + REALITY，按需选择 Hysteria2、AnyTLS、SS2022、TUIC、Trojan、WireGuard。
+- 审计/部署/收尾：[security-baseline.md](references/security-baseline.md)；资源与账单：[monitoring.md](references/monitoring.md)。
+- 证书与 hook：[certificate-renewal.md](references/certificate-renewal.md)。dry-run 成功不等于业务更新成功。
+- 统一 HTTPS 订阅与限时访客兼容：[subscriptions.md](references/subscriptions.md)。旧订阅不能随意覆盖。
+- Script.js/策略组/规则源：[mihomo-routing.md](references/mihomo-routing.md)；DNS/GEOIP：[dns-design.md](references/dns-design.md)。
+- 协议验收：[benchmarking.md](references/benchmarking.md)；排错与恢复：[troubleshooting.md](references/troubleshooting.md)。
+- 证据与版本边界：[validated-baseline.md](references/validated-baseline.md)；变更：[CHANGELOG.md](CHANGELOG.md)。
 
-For a Mihomo-compatible VLESS Reality node, install Xray from its official release or installer, generate a fresh UUID, X25519 key pair, and short ID, and configure a dedicated inbound. Select the port and Reality target only after checking reachability and conflicts. Keep the private key on the server, readable by the service account; place only the public key, UUID, short ID, host, port, SNI, fingerprint, and flow in the client profile. Enable the service and open only the required firewall port.
+忠实迁移时保留有效规则、组顺序、DIRECT/REJECT 和原 MATCH 语义，说明应用管理副本和订阅更新关系；明确请求智能分流优化时使用 MATCH,PROXY，不让未分类流量默认 DIRECT 或 REJECT。策略变化必须体现在候选 diff。
 
-Run the server's configuration check, verify the service stays active and listens on the expected port, then validate the client YAML with Mihomo. Make one actual request through a temporary local Mihomo proxy and confirm the observed exit IP. A successful YAML parse or open TCP port alone does not prove the node works.
+## 辅助脚本
 
-## Existing routing rules
+先看 --help；成功退出仅证明脚本声明的有限检查通过。
 
-If the user asks to match a current Clash setup, inspect the **runtime configuration** and any profile scripts or extensions, not just the source subscription. Copy the effective rules and groups into the new profile, replace old node references with the new node, and retain the existing `DIRECT`, `REJECT`, group order, and final `MATCH` behavior. Validate that all group choices and rule targets resolve. Do not silently turn a direct-by-default policy into `MATCH,PROXY`. Explain that importing a local profile creates an app-managed copy.
+- [preflight-audit.py](scripts/preflight-audit.py)：Linux 本机只读资源/服务摘要，缺少工具或权限标 unknown；不能替代敏感配置审计。
+- [config-validation.py](scripts/config-validation.py)：调用实际 Mihomo/Xray/sing-box 校验，要求隔离工作目录，隐藏可能敏感的核心输出。
+- [health-check.py](scripts/health-check.py)：通过本地 HTTP 代理请求公开 HTTPS 目标；不替代 UDP、路由或稳定性验收。
+- [deploy.sh](scripts/deploy.sh)：保留 Ubuntu 新机 VLESS + HTTPS 入口，增加固定上游版本/摘要要求。修订脚本仅本地静态验证，实际使用前需隔离新机验收，不作为无人值守生产保证。
 
-## Remote subscription, when requested
-
-Serve the validated profile over HTTPS at an unguessable path; the URL grants access to node credentials. Never use plain HTTP for this profile. If the server has no domain, check whether a trusted IP-address certificate is currently available. When using a short-lived certificate, configure automatic renewal and reload the HTTPS server after renewal; verify renewal with a dry run. Keep the proxy listener and subscription listener separate unless the existing architecture supports sharing them. Restrict the Web server to the exact subscription path, with other paths returning 404.
-
-Fetch the final URL from outside the server with normal certificate validation. Compare the downloaded bytes or parsed proxy and rule counts with the intended profile. Report the URL, import steps, renewal status, and whether later local file edits will sync automatically. Rotate the URL and node credentials if their contents have been exposed.
+交付分清：可解析、服务 active、端口可达、真实请求、路由正确、应用可用、长期稳定；前一层不能替代后一层。
