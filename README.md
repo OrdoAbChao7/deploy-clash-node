@@ -2,7 +2,7 @@
 
 面向多种代理客户端的 VPS 多协议代理工程 Skill，覆盖部署前审计、协议选型、HTTPS 订阅、客户端分流、性能测试和故障回滚。
 
-**当前版本：2.1.0。** 先交互确认设备、客户端和所需配置，再从现有服务器与客户端取证开始，先提供可审查的方案，再执行已获批准的生产变更。适合新建节点，也适合维护已有服务。
+**当前版本：2.2.0。** 先交互确认设备、客户端和所需配置，再从现有服务器与客户端取证开始，先提供可审查的方案，再执行已获批准的生产变更。适合新建节点，也适合维护和升级已有服务。
 
 ## 能做什么
 
@@ -10,10 +10,13 @@
 | --- | --- |
 | 只读审计 | 检查系统资源、SSH、服务与配置、监听、防火墙、TLS、续期、日志和备份；未知项明确标注 |
 | 多协议部署 | 调研官方上游，按网络、资源和客户端兼容性选择 VLESS + REALITY、Hysteria 2、AnyTLS、Shadowsocks 2022 等 |
+| 既有部署升级 | 审计版本/兼容性/回滚点，逐项升级核心、配置、订阅、规则/DNS 或客户端 profile，不把升级等同重装 |
 | 客户端适配 | 确认应用与内核版本，按目标生成节点订阅或原生完整配置，提供导入和验证步骤 |
+| 移动网络兼容 | 区分订阅入口与节点连接；蜂窝优先 TCP/443 + TLS/REALITY，按目标网络验收 FAILOVER 顺序 |
 | 统一订阅 | 同一节点数据生成各客户端格式，发布 HTTPS 订阅，保护 Token，保留旧订阅和回滚路径 |
 | 分流优化 | 按客户端原生规则/DNS实现目标；Mihomo 分支审计 Script.js，设计 PROXY / AUTO / FAILOVER |
 | 性能测试 | 分协议测试延迟、上传、下载、UDP、DNS、GitHub、应用访问和资源占用，在预算内验证稳定性 |
+| 持续监控 | 服务/网络路径/应用三层检查，只读健康脚本、告警去重和跨网络证据 |
 | 日常维护 | 核验证书续期钩子、监控流量与资源、分层排查故障并恢复已验证的配置 |
 
 多协议部署通过 Agent 按实际环境实施；仓库里的 `deploy.sh` 仅辅助部署新机 VLESS + REALITY 和 HTTPS 订阅，不会自动安装所有协议。
@@ -56,7 +59,7 @@ deploy-clash-node/
 └── scripts/
 ```
 
-Codex 可使用 `$CODEX_HOME/skills/deploy-clash-node`；未配置 `CODEX_HOME` 时可使用 `~/.codex/skills/deploy-clash-node`。已有安装先备份再更新。若同时维护多个技能目录，从同一份源码同步全部文件，避免同名 Skill 内容不一致。
+Codex 或兼容 Agent 可能使用 `$CODEX_HOME/skills/deploy-clash-node`、`~/.codex/skills/deploy-clash-node` 或 `~/.agents/skills/deploy-clash-node`。先确认实际加载目录；已有安装先备份再更新。若同时维护多个技能目录，从同一份源码同步全部文件并逐文件核对，避免同名 Skill 内容不一致。
 
 脚本依赖 Python 3 标准库；`deploy.sh` 需要 Linux/Bash。配置校验还需提供实际使用的 Mihomo、Xray 或 sing-box 二进制。读取技能本身不会安装服务器软件。
 
@@ -76,6 +79,10 @@ Codex 可使用 `$CODEX_HOME/skills/deploy-clash-node`；未配置 `CODEX_HOME` 
 
 > 用 deploy-clash-node 给 Windows 的 v2rayN 和 iPhone 的 Shadowrocket 适配现有节点。我想保留各自原有分流，请先确认版本和协议兼容性，分别给订阅或导入配置。
 
+**既有部署升级**
+
+> 用 deploy-clash-node 升级现有 VPS：先审计当前版本、配置、订阅和回滚点，再给逐项变更、兼容性和停止条件。不要重装，不要覆盖旧订阅，未经批准不要改生产。
+
 **Mihomo 分流优化**
 
 > 用 deploy-clash-node 优化当前 Script.js：国内直连，未知海外走代理，补齐 AI 和开发工具分流。先生成候选并隔离验证，未经批准不要修改生产。
@@ -84,9 +91,17 @@ Codex 可使用 `$CODEX_HOME/skills/deploy-clash-node`；未配置 `CODEX_HOME` 
 
 > 用 deploy-clash-node 排查订阅能下载但节点不通的问题，逐层验证；需要回滚时核对备份、版本和影响范围。
 
+**移动网络排查**
+
+> 用 deploy-clash-node 排查同一订阅在校园网可用、手机流量下无法更新或节点不通的问题。先区分订阅入口和节点连接，再按网络路径分层，不要直接重建服务器。
+
 **性能比较**
 
 > 用 deploy-clash-node 在 1 GB 测试流量预算内比较节点。各协议分别采样，稳定性测试与大流量测试串行，不把单节点结果推广到所有节点。
+
+**持续监控**
+
+> 用 deploy-clash-node 设计一个只读健康检查：核对配置/订阅 hash、运行规则/provider、DNS、节点延迟、系统代理/TUN 和关键站点，异常告警。不要自动改生产或切换节点。
 
 ## 标准流程
 
@@ -152,6 +167,8 @@ python scripts/config-validation.py \
 
 - 官方资产固定版本并验证摘要；不使用来源不明的一键脚本。
 - 凭据、节点配置和订阅 URL 不进入命令行参数、日志或公开仓库。
+- 验收按实际接入网络分别记录；Wi-Fi 通过不等于蜂窝/企业网可用。
+- 升级先做版本、兼容和回滚审计，不把升级等同重装；脚本本地验证不代表新 VPS 端到端部署成功。
 - 分流修改遵循“现有配置 → 候选 → 目标内核/应用验证 → 批准 → 生产应用”。Mihomo/Clash Verge 分支操作生产脚本，不手改生成的 `clash-verge.yaml`。
 - 迁移旧配置保留原有策略；明确优化时未知海外用代理兜底。Mihomo 使用 `MATCH,PROXY`，其他客户端使用其原生语法，并在差异中说明变化。
 - Certbot 模拟续期成功还需钩子执行、服务加载和实际握手证据。
@@ -166,6 +183,8 @@ python scripts/config-validation.py \
 | 文档 | 内容 |
 | --- | --- |
 | [客户端适配](references/client-adaptation.md) | 交互确认、版本兼容、原生输出、导入与逐设备验收 |
+| [多协议部署](references/multi-protocol-deployment.md) | 端口/进程/证书/故障域、逐协议上线与回滚 |
+| [升级与迁移](references/upgrade-playbook.md) | 变更分类、备份/候选/批准、订阅/规则/DNS/客户端升级 |
 | [协议选型](references/protocol-selection.md) | 官方上游、维护状态、License、摘要和兼容性 |
 | [安全基线](references/security-baseline.md) | 只读取证、最小权限、备份与收尾 |
 | [证书续期](references/certificate-renewal.md) | 合并 PEM、原子替换、钩子验证 |
@@ -173,7 +192,7 @@ python scripts/config-validation.py \
 | [Mihomo 分流](references/mihomo-routing.md) | 策略组、规则源和脚本变更流程 |
 | [DNS 设计](references/dns-design.md) | 国内外解析、GEOIP 与 no-resolve 对照 |
 | [基准测试](references/benchmarking.md) | 采样、预算、指标和结论边界 |
-| [监控](references/monitoring.md) | 流量口径、资源及三级预警 |
-| [故障排查](references/troubleshooting.md) | 分层定位与回滚 |
+| [监控](references/monitoring.md) | 分层健康检查、连续检测、流量与资源 |
+| [故障排查](references/troubleshooting.md) | 分层定位、跨网络差异与回滚 |
 
 版本变化见 [CHANGELOG.md](CHANGELOG.md)。

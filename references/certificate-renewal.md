@@ -10,4 +10,13 @@
 6. 从受保护 Certbot 日志确认目标 hook 真正执行，记录脱敏退出状态、mtime、服务加载证据与握手；模拟续期成功不等于真实续期或业务成功。
 7. 验证 timer、下次运行、短证书余量、失败告警，真实续期后再次核对提供的新证书。
 
+## 验收清单
+
+- [ ] 每个服务使用独立合并 PEM，属主/属组/权限正确，代理用户不可写。
+- [ ] 证书链、身份、期限正确；`x509`/`pkey` 公钥 SHA256 一致，空输出不能判等。
+- [ ] 同文件系统原子替换；失败保留旧文件，不出现证书/私钥错配窗口。
+- [ ] 每个服务按实际版本 reload/restart，并完成对外 TLS 握手/真实请求。
+- [ ] `certbot renew --dry-run --run-deploy-hooks` 证明目标 hook 实际执行。
+- [ ] 失败告警、timer、下次运行、短证书余量和逐服务回滚已验证。
+
 hook 应限定 lineage/服务，失败非零退出，清理本次临时私钥，不打印秘密。参考 [Certbot 官方续期说明](https://eff-certbot.readthedocs.io/en/stable/using.html#renewing-certificates)。

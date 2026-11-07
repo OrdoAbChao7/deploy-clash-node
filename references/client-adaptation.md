@@ -35,7 +35,7 @@
 
 | 目标 | 配置与导入处理 | 验证重点 |
 |---|---|---|
-| Clash Verge Rev / 其他 Mihomo 前端 | Mihomo YAML；检查应用自己的 merge/覆写/脚本能力，再使用 mihomo-routing.md。Script.js 只在应用确实支持时交付 | 实际内核 -t、应用生成配置、规则/provider、DNS和组当前选择 |
+| Clash Verge Rev / 其他 Mihomo 前端 | Mihomo YAML；检查应用自己的 merge/覆写/脚本能力，再使用 mihomo-routing.md。Script.js 只在应用确实支持时交付 | 实际内核 -t、应用生成配置与运行配置、规则/provider、DNS和组当前选择；服务模式/pipe 见 mihomo-routing.md |
 | v2rayN | 根据实际版本的导入器生成支持的节点分享链接/订阅；确定每种节点实际选用的核心。需要自定义完整配置时走应用提供的对应入口，不能把核心 JSON 自动当成通用订阅 | 应用导入结果与核心映射、原生路由/DNS是否保留、更新是否覆盖设置；校验实际生成的核心配置 |
 | v2rayNG | 按 Android 应用版本及实际核心选择分享链接/订阅或其支持的自定义配置入口；路由/DNS单独处理 | 手机上的导入与实际 VPN 请求、支持的传输参数、原设置/更新；不能沿用 v2rayN 的菜单与多核心能力假设 |
 | 原生 sing-box 客户端 | 为目标版本生成 sing-box JSON，使用原生 outbounds/route/dns；按官方迁移指南处理版本变化 | 对应二进制 check（可用时）、目标应用加载、路由与 DNS；不能直接塞入 Clash YAML |
@@ -59,15 +59,18 @@ v2rayN/v2rayNG 不等于某个固定核心；目标设备必须实查。WireGuar
 2. 有对应内核时使用 config-validation.py 的 Mihomo/Xray/sing-box 分支，提供实际二进制及隔离目录；不能用 Xray -test 代替 Shadowrocket/Surge 等应用导入验证。配置检查可能联网写缓存，不能误标无副作用。
 3. 先备份原 profile/订阅、选择、路由/DNS和网络模式并确认可恢复，再按目标应用的实际入口导入独立候选或测试 profile，核对节点数、协议和参数。切换当前 profile、覆盖设置或更改系统代理/TUN/VPN/路由需属于批准范围。
 4. 每设备验证真实连接、出口、必要 UDP/DNS、国内/海外命中与应用访问；有能力的策略再测测速/切换。无桌面 controller 的移动端使用其诊断/请求日志，不硬调用 Mihomo API。
-5. 执行一次订阅更新或配置重载，确认节点、路由、DNS和选择是否按预期保留。仅导入成功不算完整支持。
+5. 执行一次订阅更新或配置重载，确认节点、路由、DNS和选择是否按预期保留。仅导入成功不算完整支持。若客户端仍显示旧内容，检查订阅缓存、profile 是否重新应用、生成配置与运行内核是否一致。
 6. 无目标设备或无法控制该应用时交付候选及具体操作步骤，标“待设备导入/实连验证”，让用户反馈脱敏错误或结果；不能伪造 GUI/移动端实测。回滚恢复原生 profile/订阅来源/设置，通过应用重新加载。
+7. 在目标设备的实际接入网络验收：至少 Wi-Fi 与蜂窝各一次，包含订阅首次导入/更新、手动选点、真实出口和必要 UDP/DNS；只在一个网络通过不能标记为移动可用。失败按 [troubleshooting.md](troubleshooting.md) 的网络路径分层，不先改服务器。
 
 最终按设备给出：支持哪些节点、输出文件/受保护订阅位置、导入及更新步骤、分流/DNS是保留还是替换、验证证据/未测项、回滚步骤。不能只交付一份通用 YAML 后宣布所有客户端完成。
 
 ## 官方资料入口
 
-2026-11-07 核对了以下入口；用于确定格式/适配路径，不表示已验证用户设备的具体版本。实际任务应重新核对目标版本的 Release、官方指南及导入行为。
+2026-11-08 核对了以下入口；用于确定格式/适配路径，不表示已验证用户设备的具体版本。实际任务应重新核对目标版本的 Release、官方指南及导入行为。
 
+- [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev)、[Mihomo](https://github.com/MetaCubeX/mihomo) 与 [Mihomo 文档](https://wiki.metacubex.one/)。
+- [Xray-core](https://github.com/XTLS/Xray-core)、[Hysteria](https://github.com/apernet/hysteria)、[shadowsocks-rust](https://github.com/shadowsocks/shadowsocks-rust)。
 - [v2rayN 订阅说明](https://github.com/2dust/v2rayN/wiki/Description-of-subscription) 与 [设置/核心说明](https://github.com/2dust/v2rayN/wiki/Description-of-some-ui)。
 - [v2rayNG 官方仓库](https://github.com/2dust/v2rayNG)。
 - [sing-box 配置](https://sing-box.sagernet.org/configuration/)。
