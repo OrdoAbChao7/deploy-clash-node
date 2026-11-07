@@ -20,7 +20,10 @@ def probe(argv):
 
 
 def main():
-    argparse.ArgumentParser(description=__doc__).parse_args()
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--extended", action="store_true",
+                   help="include listener/UFW/timer summaries (still not a full audit)")
+    a = p.parse_args()
     if platform.system() != "Linux":
         print(json.dumps({"status": "unsupported", "required": "Linux"}))
         return 2
@@ -28,10 +31,22 @@ def main():
         "os": ["uname", "-srmo"], "cpu": ["getconf", "_NPROCESSORS_ONLN"],
         "memory": ["free", "-b"], "root_disk": ["df", "-B1", "/"],
     }
+    if a.extended:
+        checks.update({
+            "listeners_tcp": ["ss", "-ltnH"],
+            "listeners_udp": ["ss", "-lunH"],
+            "ufw": ["ufw", "status"],
+            "timers": ["systemctl", "list-timers", "--all", "--no-pager", "--no-legend"],
+        })
     result = {k: probe(v) for k, v in checks.items()}
     for unit in ("xray", "sing-box", "hysteria-server", "nginx", "certbot.timer", "vnstat"):
         result[unit] = probe(["systemctl", "show", unit, "--property=LoadState,ActiveState,SubState,User,Group,Restart"])
-    result["not_covered"] = ["credentials/configs", "SSH fingerprint/auth", "listeners/firewall", "TLS/hooks", "logs/backups", "provider quota"]
+    if a.extended:
+        result["not_covered"] = ["full firewall/cloud rules", "credentials/configs", "SSH fingerprint/auth",
+                                 "TLS/hooks", "logs/backups", "provider quota"]
+    else:
+        result["not_covered"] = ["credentials/configs", "SSH fingerprint/auth", "listeners/firewall",
+                                 "TLS/hooks", "logs/backups", "provider quota"]
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 1 if any(v.get("status") == "unknown" for v in result.values() if isinstance(v, dict)) else 0
 

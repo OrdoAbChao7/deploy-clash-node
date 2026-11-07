@@ -1,13 +1,13 @@
 ---
 name: deploy-clash-node
-description: Audit, deploy, maintain, and troubleshoot VPS proxy infrastructure with interactive client selection and version-specific profile/subscription adaptation; migrate routing and DNS, benchmark protocols, and perform verified rollbacks.
+description: Audit, deploy, upgrade, maintain, and troubleshoot VPS proxy infrastructure across client apps and access networks with interactive client selection and version-specific profile/subscription adaptation; migrate routing and DNS, benchmark protocols, and perform verified rollbacks.
 metadata:
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # VPS 多协议代理工程
 
-明确模式：只读审计、部署/升级、订阅迁移、分流优化、测试或故障回滚。沿用实际客户端、现有服务及已授予的权限；不为统一而迁移可用核心，不默认部署所有协议。以项目事实和实测为准，不把历史成绩或版本当成通用推荐。
+明确模式：只读审计、部署/升级、订阅迁移、分流优化、测试或故障回滚。沿用实际客户端、现有服务及已授予的权限；不为统一而迁移可用核心，不默认部署所有协议。以项目事实和实测为准，不把历史成绩或版本当成通用推荐。升级既有部署先做版本、兼容和回滚审计，不把升级等同于重装。
 
 ## 首先确认目标客户端
 
@@ -33,11 +33,17 @@ metadata:
 | Phase 7 收尾 | 脱敏、临时进程/端口/凭据清理；保留回滚点 | 低风险自动，高风险需批准 |
 | Phase 8 交付 | 已做/未做/限制、版本、证据、维护和回滚路径 | 自动 |
 
+验收按实际接入网络分别记录；同一配置在 Wi-Fi 通过不代表蜂窝/企业网可用。
+
 只读请求在 Phase 0 与必要的 Phase 1 后交付，不安装、续期、重启或修改系统。已有批准不重复询问；新范围先给可审查计划。安全异常停止受影响操作并报告，不连续尝试高风险绕行。SSH 指纹变化必须独立带外核验，禁止关闭 StrictHostKeyChecking。凭据仅通过受保护文件/输入传递，不进入 argv、日志、普通报告、版本库或 Skill。
 
 ## 按任务读取
 
 - 首轮交互、客户端选择、跨格式输出与导入验收：[client-adaptation.md](references/client-adaptation.md)。先选择适配分支，再读相关技术文档。
+- 在现有服务上新增协议、规划端口/证书/故障域：[multi-protocol-deployment.md](references/multi-protocol-deployment.md)。
+- 升级核心、配置、订阅、规则/DNS 或客户端 profile：[upgrade-playbook.md](references/upgrade-playbook.md)。
+- 同一配置在校园网/Wi-Fi/蜂窝表现不一致、订阅无法更新或节点全不可用：[troubleshooting.md](references/troubleshooting.md) 的网络路径分层；先区分订阅入口与节点，不据此重建服务器。
+- 连续健康检查、告警与跨网络证据：[monitoring.md](references/monitoring.md)。
 
 - 官方项目选型与多协议架构：[protocol-selection.md](references/protocol-selection.md)。保留 VLESS + REALITY，按需选择 Hysteria2、AnyTLS、SS2022、TUIC、Trojan、WireGuard。
 - 审计/部署/收尾：[security-baseline.md](references/security-baseline.md)；资源与账单：[monitoring.md](references/monitoring.md)。
