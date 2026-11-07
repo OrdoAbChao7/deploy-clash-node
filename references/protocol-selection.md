@@ -1,6 +1,6 @@
 # 官方项目调研与架构
 
-每次部署/升级重新调研：记录检索日期、仓库、目标 tag/commit、最近 Release/提交、相关未解决 Issue、安全公告/修复版本、tag 内 LICENSE、资产架构/CPU 指令要求、官方摘要来源和实算摘要、实际客户端兼容测试。访问失败记未核实，不能写没有漏洞；不根据 Star 决定。
+每次部署/升级重新调研：记录检索日期、仓库、目标 tag/commit、最近 Release/提交、相关未解决 Issue、安全公告/修复版本、tag 内 LICENSE、资产架构/CPU 指令要求、官方摘要来源和实算摘要、目标应用及实际内核版本的兼容测试（先完成 client-adaptation.md 的交互确认）。访问失败记未核实，不能写没有漏洞；不根据 Star 决定。
 
 优先 [Xray-core](https://github.com/XTLS/Xray-core)、[sing-box](https://github.com/SagerNet/sing-box)、[Hysteria](https://github.com/HyNetworks/hysteria)、[Mihomo](https://github.com/MetaCubeX/mihomo)、[shadowsocks-rust](https://github.com/shadowsocks/shadowsocks-rust)。其他实现核对协议规范、维护者与迁移关系。查看 Releases、commits、相关 issues、Security advisories 和许可证，不能只看 README。
 
@@ -10,7 +10,7 @@
 |---|---|
 | VLESS + REALITY | 保留可用 TCP 基线；目标站可达、UUID/X25519/short ID、SNI/flow/fingerprint 匹配；私钥只在服务端 |
 | Hysteria 2 | UDP/QUIC 可用性、TLS、实际拥塞配置；TCP 通不代表 UDP 通 |
-| AnyTLS | 指定服务端实现与 Mihomo 版本的协议/认证/TLS 支持；参考实现不等于集成核心成熟度 |
+| AnyTLS | 指定服务端实现与所选客户端/内核版本的协议/认证/TLS 支持；参考实现不等于集成核心成熟度 |
 | Shadowsocks 2022 | cipher/密钥长度与 TCP/UDP；不能套用 TLS 证书要求 |
 | TUIC | 具体实现、协议版本、当前维护与兼容性；不永久照搬某次停更结论 |
 | Trojan | TLS、端口复用、TCP/UDP及功能重叠 |

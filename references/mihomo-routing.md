@@ -1,5 +1,7 @@
 # Mihomo 策略与分流
 
+仅在目标应用实际使用 Mihomo 且支持相应配置时采用。GUI 的 Script.js/merge 扩展还需单独确认，不能因同为 Mihomo 就假设具有 Clash Verge 的扩展入口。其他客户端见 [客户端适配](client-adaptation.md)。
+
 记录实际内核版本，不能用 GUI 版本替代。审计原始订阅、active profile、全局/订阅 Script.js、merge、最终配置和控制器状态，确认规则来源。
 
 | 组 | 语义 |

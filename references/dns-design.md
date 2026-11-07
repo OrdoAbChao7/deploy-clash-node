@@ -1,5 +1,7 @@
 # DNS 设计与对照
 
+本文字段和 no-resolve 示例属于 Mihomo。其他客户端复用测试目标，必须按实际版本重新实现其原生 DNS/路由设置，不复制这些键；先读 [客户端适配](client-adaptation.md)。
+
 记录系统代理/TUN、fake-ip/redir-host、IPv4/IPv6及应用自行解析行为，不能承诺系统代理模式零 DNS 泄漏。看有效配置，区分 bootstrap default-nameserver、节点 proxy-server-nameserver、nameserver-policy、默认解析器及 fallback。
 
 防止节点域名、DoH 域名、provider 首次下载形成代理/DNS 循环。按网络可达性和需求选国内/海外解析器，不把固定公共 DNS 当万能方案。

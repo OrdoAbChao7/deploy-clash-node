@@ -1,8 +1,8 @@
 # deploy-clash-node
 
-面向 **Clash / Mihomo** 的 VPS 多协议代理工程 Skill，覆盖部署前审计、协议选型、HTTPS 订阅、客户端分流、性能测试和故障回滚。
+面向多种代理客户端的 VPS 多协议代理工程 Skill，覆盖部署前审计、协议选型、HTTPS 订阅、客户端分流、性能测试和故障回滚。
 
-**当前版本：2.0.0。** 从现有服务器和客户端取证开始，先提供可审查的方案，再执行已获批准的生产变更。适合新建节点，也适合维护已有服务。
+**当前版本：2.1.0。** 先交互确认设备、客户端和所需配置，再从现有服务器与客户端取证开始，先提供可审查的方案，再执行已获批准的生产变更。适合新建节点，也适合维护已有服务。
 
 ## 能做什么
 
@@ -10,12 +10,32 @@
 | --- | --- |
 | 只读审计 | 检查系统资源、SSH、服务与配置、监听、防火墙、TLS、续期、日志和备份；未知项明确标注 |
 | 多协议部署 | 调研官方上游，按网络、资源和客户端兼容性选择 VLESS + REALITY、Hysteria 2、AnyTLS、Shadowsocks 2022 等 |
-| 统一订阅 | 整合已部署节点，发布 HTTPS 订阅，保护 Token，保留旧订阅和回滚路径 |
-| 分流优化 | 审计生产 Script.js，设计 PROXY / AUTO / FAILOVER，优化规则集、国内外 DNS 和未知域名兜底 |
+| 客户端适配 | 确认应用与内核版本，按目标生成节点订阅或原生完整配置，提供导入和验证步骤 |
+| 统一订阅 | 同一节点数据生成各客户端格式，发布 HTTPS 订阅，保护 Token，保留旧订阅和回滚路径 |
+| 分流优化 | 按客户端原生规则/DNS实现目标；Mihomo 分支审计 Script.js，设计 PROXY / AUTO / FAILOVER |
 | 性能测试 | 分协议测试延迟、上传、下载、UDP、DNS、GitHub、应用访问和资源占用，在预算内验证稳定性 |
 | 日常维护 | 核验证书续期钩子、监控流量与资源、分层排查故障并恢复已验证的配置 |
 
 多协议部署通过 Agent 按实际环境实施；仓库里的 `deploy.sh` 仅辅助部署新机 VLESS + REALITY 和 HTTPS 订阅，不会自动安装所有协议。
+
+## 调用时先问清楚客户端
+
+信息未明确时，Skill 会先询问：
+
+> 你准备在哪些设备和客户端使用？可以多选，例如 Windows + v2rayN、Android + Hiddify、iPhone + Shadowrocket；需要只导入节点，还是连分流和 DNS 一起配置？
+
+已在本次请求中说明的内容不重复问；不清楚版本时帮助识别。目标未明确前，可继续独立的服务器只读审计，但不会默认生成 Mihomo 配置或据此修改生产。
+
+| 客户端方向 | 适配方式 |
+| --- | --- |
+| Clash Verge Rev / Mihomo 前端 | YAML 与应用实际支持的覆写/脚本，使用 Mihomo 专用校验 |
+| v2rayN / v2rayNG | 按应用版本与实际核心生成支持的节点订阅或自定义配置，原生路由/DNS单独核对 |
+| sing-box / Hiddify | 按目标版本生成 JSON 或应用支持的导入格式，核对转换后的实际行为 |
+| Shadowrocket | 按应用版本适配节点订阅/原生配置，在目标设备验证 |
+| Surge / Quantumult X | 分别采用各自原生配置与规则资源，逐项确认协议和策略能力 |
+| OpenClash / 路由器及其他应用 | 先核对插件、平台与核心，再确定配置和网络设置范围 |
+
+这是**适配工作流覆盖范围**，不是所有客户端与协议组合已实测的承诺。不支持或未核实的功能会明确列出；没有目标设备时，交付候选、导入步骤和待验证项，不宣称已连通。多设备可从同一节点数据生成多个格式入口，不强行共用一份 YAML。详见 [客户端适配指南](references/client-adaptation.md)。
 
 ## 安装
 
@@ -52,6 +72,10 @@ Codex 可使用 `$CODEX_HOME/skills/deploy-clash-node`；未配置 `CODEX_HOME` 
 
 > 用 deploy-clash-node 设计 VLESS、Hysteria2 和 AnyTLS 方案。保留已有可用服务，先给上游选型、配置差异、备份及回滚计划，我批准后部署。
 
+**多设备适配**
+
+> 用 deploy-clash-node 给 Windows 的 v2rayN 和 iPhone 的 Shadowrocket 适配现有节点。我想保留各自原有分流，请先确认版本和协议兼容性，分别给订阅或导入配置。
+
 **Mihomo 分流优化**
 
 > 用 deploy-clash-node 优化当前 Script.js：国内直连，未知海外走代理，补齐 AI 和开发工具分流。先生成候选并隔离验证，未经批准不要修改生产。
@@ -68,7 +92,7 @@ Codex 可使用 `$CODEX_HOME/skills/deploy-clash-node`；未配置 `CODEX_HOME` 
 
 | 阶段 | 工作 | 权限边界 |
 | --- | --- | --- |
-| Phase 0 | 只读取证 | 自动 |
+| Phase 0 | 确认客户端目标、只读取证 | 缺失信息交互确认；只读自动 |
 | Phase 1 | 官方 GitHub 项目调研 | 自动 |
 | Phase 2 | 架构设计 | 自动 |
 | Phase 3 | 部署计划、备份与回滚方案 | 自动 |
@@ -128,8 +152,8 @@ python scripts/config-validation.py \
 
 - 官方资产固定版本并验证摘要；不使用来源不明的一键脚本。
 - 凭据、节点配置和订阅 URL 不进入命令行参数、日志或公开仓库。
-- 分流修改遵循“生产脚本 → 候选 → 隔离验证 → 批准 → 生产应用”，不手改生成的 `clash-verge.yaml`。
-- 迁移旧配置保留原有策略；明确优化时使用 `MATCH,PROXY` 兜底，并在差异中说明变化。
+- 分流修改遵循“现有配置 → 候选 → 目标内核/应用验证 → 批准 → 生产应用”。Mihomo/Clash Verge 分支操作生产脚本，不手改生成的 `clash-verge.yaml`。
+- 迁移旧配置保留原有策略；明确优化时未知海外用代理兜底。Mihomo 使用 `MATCH,PROXY`，其他客户端使用其原生语法，并在差异中说明变化。
 - Certbot 模拟续期成功还需钩子执行、服务加载和实际握手证据。
 - 本机 vnStat 与服务商账单分开记录，不自行假定套餐额度。
 
@@ -141,6 +165,7 @@ python scripts/config-validation.py \
 
 | 文档 | 内容 |
 | --- | --- |
+| [客户端适配](references/client-adaptation.md) | 交互确认、版本兼容、原生输出、导入与逐设备验收 |
 | [协议选型](references/protocol-selection.md) | 官方上游、维护状态、License、摘要和兼容性 |
 | [安全基线](references/security-baseline.md) | 只读取证、最小权限、备份与收尾 |
 | [证书续期](references/certificate-renewal.md) | 合并 PEM、原子替换、钩子验证 |
