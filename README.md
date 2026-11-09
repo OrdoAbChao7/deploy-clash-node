@@ -2,7 +2,7 @@
 
 面向多种代理客户端的 VPS 多协议代理工程 Skill，覆盖部署前审计、协议选型、HTTPS 订阅、客户端分流、性能测试和故障回滚。
 
-**当前版本：2.2.0。** 先交互确认设备、客户端和所需配置，再从现有服务器与客户端取证开始，先提供可审查的方案，再执行已获批准的生产变更。适合新建节点，也适合维护和升级已有服务。
+**当前版本：2.4.0。** 先交互确认设备、客户端和所需配置，再从现有服务器与客户端取证开始，先提供可审查的方案，再执行已获批准的生产变更。适合新建节点，也适合维护和升级已有服务。
 
 ## 能做什么
 
@@ -13,6 +13,7 @@
 | 既有部署升级 | 审计版本/兼容性/回滚点，逐项升级核心、配置、订阅、规则/DNS 或客户端 profile，不把升级等同重装 |
 | 客户端适配 | 确认应用与内核版本，按目标生成节点订阅或原生完整配置，提供导入和验证步骤 |
 | 移动网络兼容 | 区分订阅入口与节点连接；蜂窝优先 TCP/443 + TLS/REALITY，按目标网络验收 FAILOVER 顺序 |
+| 认证门户直连 | 先确认是否需要；按实际门户地址段/认证域名配置 TUN 排除与 DIRECT 规则，避免门户被代理重置 |
 | 统一订阅 | 同一节点数据生成各客户端格式，发布 HTTPS 订阅，保护 Token，保留旧订阅和回滚路径 |
 | 分流优化 | 按客户端原生规则/DNS实现目标；Mihomo 分支审计 Script.js，设计 PROXY / AUTO / FAILOVER |
 | 性能测试 | 分协议测试延迟、上传、下载、UDP、DNS、GitHub、应用访问和资源占用，在预算内验证稳定性 |
@@ -94,6 +95,10 @@ Codex 或兼容 Agent 可能使用 `$CODEX_HOME/skills/deploy-clash-node`、`~/.
 **移动网络排查**
 
 > 用 deploy-clash-node 排查同一订阅在校园网可用、手机流量下无法更新或节点不通的问题。先区分订阅入口和节点连接，再按网络路径分层，不要直接重建服务器。
+
+**校园认证门户**
+
+> 用 deploy-clash-node 处理校园网认证门户被代理重置的问题。先确认是否需要门户直连模式，我会提供门户 IP/网段和认证域名；再给规则、验证和回滚方案，未经批准不要改生产。
 
 **性能比较**
 
@@ -190,6 +195,8 @@ python scripts/config-validation.py \
 | [证书续期](references/certificate-renewal.md) | 合并 PEM、原子替换、钩子验证 |
 | [订阅管理](references/subscriptions.md) | HTTPS、Token、旧订阅兼容与访客撤销 |
 | [Mihomo 分流](references/mihomo-routing.md) | 策略组、规则源和脚本变更流程 |
+| [校园认证门户](references/campus-portal.md) | 交互确认、TUN 排除、DIRECT 规则、验证与回滚 |
+| [Claude 降风控](references/claude-risk-reduction.md) | 出口 IP、经代理 DNS、IPv6、Claude 域名分流与验收 |
 | [DNS 设计](references/dns-design.md) | 国内外解析、GEOIP 与 no-resolve 对照 |
 | [基准测试](references/benchmarking.md) | 采样、预算、指标和结论边界 |
 | [监控](references/monitoring.md) | 分层健康检查、连续检测、流量与资源 |

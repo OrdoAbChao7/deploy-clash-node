@@ -1,8 +1,8 @@
 ---
 name: deploy-clash-node
-description: Audit, deploy, upgrade, maintain, and troubleshoot VPS proxy infrastructure across client apps and access networks with interactive client selection and version-specific profile/subscription adaptation; migrate routing and DNS, benchmark protocols, and perform verified rollbacks.
+description: Audit, deploy, upgrade, maintain, and troubleshoot VPS proxy infrastructure across client apps and access networks with interactive client selection and version-specific profile/subscription adaptation; migrate routing and DNS, benchmark protocols, and perform verified rollbacks, plus Claude/Anthropic risk-reduction hardening.
 metadata:
-  version: "2.2.0"
+  version: "2.4.0"
 ---
 
 # VPS 多协议代理工程
@@ -18,6 +18,8 @@ metadata:
 使用可用的交互提问工具；没有则用普通对话。先查已有上下文与获准读取的本机信息，再只追问影响兼容性的缺失项。客户端/目标设备未确定时，保持问题待答，可继续独立的只读服务器审计，不生成最终客户端配置、不按猜测选生产协议。用户不清楚版本时帮助只读识别或指引“关于”页面，不要求粘贴订阅凭据。仅服务器只读审计无需因缺客户端而停工，注明客户端适配未评估。
 
 按 [客户端适配](references/client-adaptation.md) 记录系统、应用版本、实际内核/版本、节点或完整配置、是否保留原分流及多设备需求。生成目标客户端原生格式并验证；“支持适配流程”不等于所有客户端/协议组合已实测。已有生产变更授权和客户端选择是两件事，不混为一次批准。
+
+接入网络可能是校园网/企业/酒店网页认证时，先交互确认是否需要“认证门户直连”模式，并收集实际门户地址段与认证/自助域名；不同学校/企业地址不同，不预置或沿用他处 IP/域名。用户确认不需要或无法确认时，不加该模式，按普通分流处理。详见 [校园认证门户](references/campus-portal.md)。
 
 ## 执行阶段
 
@@ -43,6 +45,7 @@ metadata:
 - 在现有服务上新增协议、规划端口/证书/故障域：[multi-protocol-deployment.md](references/multi-protocol-deployment.md)。
 - 升级核心、配置、订阅、规则/DNS 或客户端 profile：[upgrade-playbook.md](references/upgrade-playbook.md)。
 - 同一配置在校园网/Wi-Fi/蜂窝表现不一致、订阅无法更新或节点全不可用：[troubleshooting.md](references/troubleshooting.md) 的网络路径分层；先区分订阅入口与节点，不据此重建服务器。
+- 接入网络需要网页认证（校园网/企业/酒店），或门户、认证/自助站点被代理重置：[campus-portal.md](references/campus-portal.md)。先确认是否需要该模式及实际地址段/域名，再设计直连规则。
 - 连续健康检查、告警与跨网络证据：[monitoring.md](references/monitoring.md)。
 
 - 官方项目选型与多协议架构：[protocol-selection.md](references/protocol-selection.md)。保留 VLESS + REALITY，按需选择 Hysteria2、AnyTLS、SS2022、TUIC、Trojan、WireGuard。
@@ -50,6 +53,7 @@ metadata:
 - 证书与 hook：[certificate-renewal.md](references/certificate-renewal.md)。dry-run 成功不等于业务更新成功。
 - 统一 HTTPS 订阅与限时访客兼容：[subscriptions.md](references/subscriptions.md)。旧订阅不能随意覆盖。
 - 仅 Mihomo 分支的 Script.js/策略组/规则源：[mihomo-routing.md](references/mihomo-routing.md)；DNS/GEOIP：[dns-design.md](references/dns-design.md)。
+- 以 Claude / Anthropic 稳定性或降风控为目标（出口 IP、DNS 泄漏、IPv6、Claude 域名显式分流与验收）：[claude-risk-reduction.md](references/claude-risk-reduction.md)。
 - 协议验收：[benchmarking.md](references/benchmarking.md)；排错与恢复：[troubleshooting.md](references/troubleshooting.md)。
 - 证据与版本边界：[validated-baseline.md](references/validated-baseline.md)；变更：[CHANGELOG.md](CHANGELOG.md)。
 
@@ -65,3 +69,9 @@ metadata:
 - [deploy.sh](scripts/deploy.sh)：保留 Ubuntu 新机 VLESS + HTTPS 入口，增加固定上游版本/摘要要求。修订脚本仅本地静态验证，实际使用前需隔离新机验收，不作为无人值守生产保证。
 
 交付分清：可解析、服务 active、端口可达、真实请求、路由正确、应用可用、长期稳定；前一层不能替代后一层。
+
+## 客户端交付硬门槛
+
+逐客户端记录交付类型（完整 profile、仅节点集合或分享链接列表）、实际应用入口、原始文件摘要、测试时补入或转换的内容、应用导入及更新结果、实际生效配置和未验证项。仅有 `proxies` 的 YAML 是节点集合；只有实际验证应用的合并链后，才能声明它可用于该入口，不能将其称作完整 profile。追加策略组与规则后的 `mihomo -t` 只证明拼接后的配置可解析。真实应用导入、更新和设置保持未验证时不得声称该客户端交付完成。权限不允许实际切换时保留隔离候选并明确未验收，不要求用户冒险验证。
+
+在本机运行任何隔离核心或指导应用重载前，核查相关应用服务、已有核心进程的可执行文件、PID、父进程、命令行及监听（脱敏），识别监控程序或其他现有实例；按实际版本核对同名核心冲突。冲突存在或无法排除时，停止启动同名测试核心或指导重载，先找到并验证不干扰现有进程的隔离方式。隔离目录和端口不保证进程名隔离；不得终止不明进程或擅停监控。验证原状态、回滚与真实应用更新参见客户端适配及 Mihomo 分支。

@@ -14,6 +14,8 @@
 
 ## Clash Verge Rev / 服务模式
 
+- 本机只读盘点 Clash 服务、核心、后台监控及临时测试进程的 PID、父进程、可执行文件名/路径、脱敏命令行和监听。检查实际版本的服务启动策略；同名核心即使使用不同目录、端口也可能使服务拒绝启动。记录所有者，不以名称模糊杀进程或擅停监控；需要改隔离策略时先验证不影响运行中的应用、原设置与回滚。
+
 - GUI 版本不等于实际内核版本；从应用“关于/内核”或控制器读取实际 Mihomo 版本。
 - 服务模式与 sidecar 模式的配置路径、控制器和运行配置可能不同；应用生成的 `clash-verge.yaml` 是产物，不是唯一运行配置。不要手改生成文件。
 - 修改优先走应用支持的 Script.js/merge；需要控制器时先备份，确认实际 secret/pipe，`PUT /configs?force=true` 的 payload 必须是完整配置；不要假设 path reload 在所有模式可用。
@@ -25,6 +27,8 @@
 每次优化调研 [meta-rules-dat](https://github.com/MetaCubeX/meta-rules-dat)、[blackmatrix7](https://github.com/blackmatrix7/ios_rule_script)、[ACL4SSR](https://github.com/ACL4SSR/ACL4SSR) 及 [Loyalsoldier](https://github.com/Loyalsoldier/clash-rules) 等历史源当前维护状态。记录 commit/日期/License/分类/生成来源/MRS或YAML格式/behavior/大小/更新路径；聚合仓库许可不自动覆盖上游数据。
 
 优先成熟规则集，少量显式补充并去重，防止大分类遮住细分类。建议顺序：私网→必要国内镜像例外→AI/开发/认证/CDN→海外→国内分类→GEOIP,CN,DIRECT→MATCH,PROXY。国内优先 DIRECT，未知国内通过 DNS/GEOIP 尽可能识别，未知海外代理；未分类不能默认 REJECT 或 DIRECT。忠实迁移与明确优化区别见 SKILL.md。
+
+接入网络是校园网/企业/酒店网页认证时，先交互确认是否需要“认证门户直连”模式，并收集用户确认的门户地址段与认证/自助域名；不预置或沿用其他学校的 IP/域名。需要时把门户 CIDR 加入 `tun.route-exclude-address`，并加 `IP-CIDR,<portal-cidr>,DIRECT,no-resolve` 与 `DOMAIN-SUFFIX,<auth-domain>,DIRECT`，置于代理与国内分类规则之前。认证站点即使解析到公网也要显式直连，否则会被送进海外节点并按海外来源重置。完整流程、验证与回滚见 [campus-portal.md](campus-portal.md)。
 
 生产 Script.js → 独立候选 → 实际输入转换 → 隔离 Mihomo → 审查 diff/测试 → 用户批准 → 更新生产脚本 → 应用重生成 → 实际验收。不要手改生成 YAML。执行脚本先审查；Node VM 不是安全沙箱。
 
